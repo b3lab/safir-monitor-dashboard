@@ -75,10 +75,10 @@ class Measures(generic.View):
 
     def get_measures(self, request, metric_name, resource_id, start, end):
 
+        measures = []
         if metric_name == 'memory_util' or metric_name == 'disk_util':
             # TODO(ecelik): we should check if memory_util or disk_util
             # is already in gnocchi metrics
-            measures = []
             if metric_name == 'memory_util':
                 capacity_measures = gnocchi.get_measures(request,
                                                          'memory',
@@ -120,17 +120,17 @@ class Measures(generic.View):
                                          "{0:.2f}".format(data[2] / cap * 100.)
                                          ])
         else:
-            measures = gnocchi.get_measures(request,
+            measures_ori = gnocchi.get_measures(request,
                                             metric_name,
                                             resource_id,
                                             start,
                                             end)
 
-            for data in measures:
+            for data in measures_ori:
                 if 'network' in metric_name:
-                    data[2] = "{0:.2f}".format(data[2] * 8.0 * bps_to_mbps)
+                    measures.append((data[0], data[1], "{0:.2f}".format(data[2] * 8.0 * bps_to_mbps)))
                 else:
-                    data[2] = "{0:.2f}".format(data[2])
+                    measures.append((data[0], data[1], "{0:.2f}".format(data[2])))
 
         return measures
 
@@ -193,9 +193,10 @@ class HardwareMeasures(generic.View):
 
     def get_measures(self, request, metric_name, resource_id, start, end):
 
+        measures = []
         if metric_name == 'hardware.memory.util' or \
            metric_name == 'hardware.disk.util':
-            measures = []
+            
             if metric_name == 'hardware.memory.util':
                 capacity_measures = gnocchi.get_measures(
                     request,
@@ -278,14 +279,14 @@ class HardwareMeasures(generic.View):
                         measures.append(data)
 
         else:
-            measures = gnocchi.get_measures(request,
+            measures_ori = gnocchi.get_measures(request,
                                             metric_name,
                                             resource_id,
                                             start,
                                             end)
 
-            for data in measures:
-                data[2] = "{0:.2f}".format(data[2])
+            for data in measures_ori :
+                measures.append((data[0], data[1], "{0:.2f}".format(data[2])))
 
         return measures
 
